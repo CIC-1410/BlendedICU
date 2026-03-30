@@ -5,7 +5,7 @@ auxillary_files/medications.json
 auxillary_files/OMOP_vocabulary/
 
 6_preprocessed.py
-blendedICU_stats.py	
+blendedICU_stats.py
 duckdb_writeparquet.py
 temp.parquet
 to_postgre.py
