@@ -16,9 +16,11 @@ class mimic4_FLProcessor(FlatAndLabelsProcessor):
         flat['raw_height'] = flat['height']
         flat['raw_weight'] = flat['weight']
         flat['origin'] = flat['admission_location']
+        
+        flat = flat.replace({'gender': {'M': 1, 'F': 0}})
+        flat = flat.infer_objects(copy=False)  # Explicit the downcasting
 
-        flat = (flat.replace({'gender': {'M': 1, 'F': 0}})
-                    .pipe(self.clip_and_norm,
+        flat = (flat.pipe(self.clip_and_norm,
                           cols=['height', 'weight'],
                           recompute_quantiles=True,
                           clip=True)
@@ -29,13 +31,13 @@ class mimic4_FLProcessor(FlatAndLabelsProcessor):
         labels = (self.labels.rename(columns={
                                         'stay_id': self.idx_col,
                                         'subject_id': 'uniquepid',
-                                        'hospital_expire_flag': self.mor_col,
+                                        'icu_death_flag': self.mor_col,
                                         'los': self.los_col,
                                         'first_careunit': 'unit_type'})
                   .set_index(self.idx_col)
                   .astype({'uniquepid': str, 'hadm_id': str})
                   .sort_index())
-
+        
         labels['sex'] = flat['gender']
         labels['age'] = flat['raw_age']
         labels['raw_height'] = flat['raw_height']
