@@ -88,16 +88,18 @@ class mimic4Preparator(DataPreparator):
         
         df_icustays = (admissions
                        .select(['hadm_id',
-                                'race',
+                                'race', 
                                 'admission_location',
                                 'insurance',
                                 'discharge_location',
-                                'hospital_expire_flag'])
+                                'hospital_expire_flag',
+                                'deathtime'
+                                ])
                        .join(icustays, on='hadm_id')
                        .with_columns(
                            pl.col('intime').str.to_datetime("%Y-%m-%d %H:%M:%S"),
                            pl.col('outtime').str.to_datetime("%Y-%m-%d %H:%M:%S"),
-                           pl.duration(seconds=pl.col(self.col_los).mul(self.seconds_in_a_day)).alias(self.col_los)
+                           pl.col('deathtime').str.strptime(pl.Datetime, "%Y-%m-%d %H:%M:%S"),
                            )
                        .collect())
         
@@ -283,16 +285,18 @@ class mimic4Preparator(DataPreparator):
         
         icustays = self.icustays.lazy()
 
-        hospital_mortality = (icustays
-                              .group_by("hadm_id")
-                              .agg(pl.col("hospital_expire_flag").max()))
-        
         self.labels = (icustays.select('subject_id', 'hadm_id',
-                                       'stay_id', 'los', 'intime',
-                                       'discharge_location', 'first_careunit')
-                       
-                       .join(hospital_mortality, on='hadm_id')
+                                       'stay_id', 'los', 'intime', 
+                                       'outtime','deathtime',
+                                       'discharge_location', 'first_careunit',
+                                       'hospital_expire_flag')
                         .with_columns(
+                            icu_death_flag=pl.when(
+                                (pl.col("hospital_expire_flag") == 1) &
+                                (pl.col("deathtime").is_between(pl.col("intime"), pl.col("outtime")))
+                            )
+                            .then(pl.lit(1))
+                            .otherwise(pl.lit(0)),
                             care_site=pl.lit('Beth Israel Deaconess Medical Center')
                             )
                         .sort('stay_id')
