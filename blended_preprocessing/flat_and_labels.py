@@ -92,7 +92,7 @@ class blended_FLProcessor(FlatAndLabelsProcessor):
                                         .pipe(_take_sample,
                                               size=self.size)
                                         .groupby('source_dataset')
-                                        .apply(self._fill_flat,
+                                        .apply(self._fill_flat, # FutureWarning: DataFrameGroupBy.apply operated on the grouping columns
                                               cols=['height', 'weight'])
                                         .pipe(self.clip_and_norm,
                                               cols=['height', 'weight', 'age'],
