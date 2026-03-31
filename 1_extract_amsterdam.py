@@ -1,6 +1,6 @@
 """
-This code extracts the data from the Amsterdam dataset 
-('amsterdam_source_path' in paths.json).
+This code extracts the data from the eICU dataset 
+('eicu_source_path' in paths.json).
 
 It creates a set of .parquet files at the specified path 
 ('amsterdam' in paths.json). 
