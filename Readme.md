@@ -1,6 +1,6 @@
 Welcome to the BlendedICU code repository
 ===
-This is the repository from [Introducing the BlendedICU dataset, the first harmonized, international intensive care dataset](https://www.sciencedirect.com/science/article/abs/pii/S153204642300223X)
+This is a duplica and update of the repository from [Introducing the BlendedICU dataset, the first harmonized, international intensive care dataset](https://www.sciencedirect.com/science/article/abs/pii/S153204642300223X), as the access to the previous github account was lost (cf. [USM-CHU-FGuyon/BlendedICU](https://github.com/USM-CHU-FGuyon/BlendedICU)).
 
 [ResearchGate link](https://www.researchgate.net/publication/374201062_Introducing_the_BlendedICU_dataset_the_first_harmonized_international_intensive_care_dataset) 
 
