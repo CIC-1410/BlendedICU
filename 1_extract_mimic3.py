@@ -1,5 +1,5 @@
 """
-This code extracts the data from the MIMIC-IV dataset 
+This code extracts the data from the MIMIC-III dataset 
 ('mimic_source_path' in paths.json).
 
 It creates a set of .parquet files at the specified path 
