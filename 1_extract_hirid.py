@@ -1,5 +1,5 @@
 """
-This code extracts the data from the Amsterdam dataset 
+This code extracts the data from the HiRID dataset 
 ('hirid_source_path' in paths.json).
 
 It creates a set of .parquet files at the specified path 
