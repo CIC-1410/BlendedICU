@@ -347,14 +347,20 @@ class OMOP_converter(blendedicuTSP):
         self.observation['observation_type_concept_id'] = 38000280
 
         self.observation['observation_date'] = pd.to_datetime(self.observation['observation_date'])
-        
-        obs = pl.from_pandas(self.observation).with_columns(self._hash('observation_id'))
-
+       
+        schema = pl.from_pandas(self.observation).schema
+        schema["observation_id"] = pl.Int64
+        obs = (pl.from_pandas(self.observation)
+               # .cast(pl.Utf8)
+               .with_columns(self._hash('observation_id'))
+               .cast(schema, strict = False)
+               )
         self.save(obs, self.savedir+'OBSERVATION.parquet')
 
     @staticmethod
     def _hash(alias):
-        return pl.concat_str(pl.all().replace(None, ''), separator='|').hash().reinterpret(signed=True).abs().alias(alias)
+        return pl.concat_str(pl.all().cast(pl.Utf8).replace(None, ''), separator='|').hash().reinterpret(signed=True).abs().alias(alias)
+        # return pl.concat_str(pl.all().replace(None, ''), separator='|').hash().reinterpret(signed=True).abs().alias(alias)
 
     def drug_exposure_table(self):
         raise UserWarning('dosage is not fully omop-ized, it is advised to check the data carefully before using.')
@@ -412,7 +418,7 @@ class OMOP_converter(blendedicuTSP):
 
     def care_site_table(self):
         print('Care_site table...')
-        care_site = cdm.tables['CARE_SITE']
+        care_site = cdm.tables['CARE_SITE'] 
         self.labels['unit_type'] = self.labels['unit_type'].replace(self.unit_types)
         
         care_sites = (self.labels[['care_site', 'unit_type']]
@@ -422,7 +428,7 @@ class OMOP_converter(blendedicuTSP):
         care_site[['care_site_name', 'place_of_service_source_value']] = care_sites
         care_site['care_site_source_value'] = care_site['care_site_name']
 
-        care_site['location_id'] = care_site['care_site_name'].map(self.mapping_location).astype(int)
+        care_site['location_id'] = care_site['care_site_name'].map(self.mapping_location).astype(int) 
         
         unique_key_cols = ['care_site_name', 'place_of_service_source_value']
         
@@ -460,10 +466,12 @@ class OMOP_converter(blendedicuTSP):
             'domain_concept_id': [8, 58, 27, 13, 16, 21]
         }
 
+        # df_domain = (pl.LazyFrame(domains).cast(pl.Utf8) # ._hash awaits a str
         df_domain = (pl.LazyFrame(domains)
-              .with_columns(
-                  self._hash('domain_id').cast(pl.String)
-            )).collect()
+                     .with_columns(
+                      self._hash('domain_id').cast(pl.String),
+                      pl.col("domain_concept_id").cast(pl.Int64) # maintain previous format 
+                      )).collect()
         
         self.mapping_domain_id = df_domain.select('domain_name', 'domain_id').to_pandas().set_index('domain_name').domain_id.to_dict()
         
@@ -609,9 +617,11 @@ class OMOP_converter(blendedicuTSP):
                                      +location_dic_2
                                      +location_dic_3)
 
+        # df_location = (pl.from_pandas(pd_location).cast(pl.Utf8)
         df_location = (pl.from_pandas(pd_location)
                        .with_columns(
-                           self._hash('location_id')
+                           self._hash('location_id'),
+                           pl.col("country_concept_id").cast(pl.Int64)
                            )
                        )
 
@@ -673,7 +683,7 @@ class OMOP_converter(blendedicuTSP):
         table = table.reset_index(drop=True)
         self._sanity_checks(table, name)
 
-        schema = self.schemas[name.lower()]
+        schema = self.schemas[name.lower()] # incompatible dtype for location_id int32 
 
         if chunkindex is None:
             savepath = f'{self.savedir}/{name}.parquet'
