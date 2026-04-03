@@ -290,7 +290,8 @@ class CDMTables:
         schema = pa.schema([('care_site_id', pa.int64()),
                             ('care_site_name', pa.string()),
                             ('place_of_service_concept_id', pa.int32()),
-                            ('location_id', pa.int32()),
+                            ('location_id', pa.int64()),
+                            # ('location_id', pa.int32()),
                             ('care_site_source_value', pa.string()),
                             ('place_of_service_source_value', pa.string())])
         return schema  
